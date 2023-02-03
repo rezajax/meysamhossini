@@ -1,3 +1,4 @@
+import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -82,6 +83,24 @@ class _MusicAppState extends State<MusicApp> {
     // };
   }
 
+  late AssetsAudioPlayer _assetsAudioPlayer;
+  var FILE_URI = "/assets/Khianat.mp3";
+
+  void openPlayer() async {
+    await _assetsAudioPlayer.open(
+      Audio(FILE_URI),
+      showNotification: true,
+      autoStart: true,
+    );
+  }
+
+  @override
+  void dispose() {
+    _assetsAudioPlayer.dispose();
+    print('dispose');
+    super.dispose();
+  }
+
   final List<Color> colors = <Color>[Colors.red, Colors.blue, Colors.amber];
   @override
   Widget build(BuildContext context) {
@@ -149,7 +168,7 @@ class _MusicAppState extends State<MusicApp> {
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(30.0),
                           image: DecorationImage(
-                            image: AssetImage("assets/meysam.jpg"),
+                            image: AssetImage("assets/meysam2.jpg"),
                           )),
                     ),
                   ),
@@ -220,12 +239,20 @@ class _MusicAppState extends State<MusicApp> {
                                   if (!playing) {
                                     //now let's play the song
                                     //cache.play("Khianat.mp3");
+                                    // assetsAudioPlayer.open(
+                                    //   Audio.file(FILE_URI),
+                                    // );
+                                    openPlayer();
+
                                     setState(() {
                                       playBtn = Icons.pause;
                                       playing = true;
                                     });
                                   } else {
                                     //_player.pause();
+                                    // assetsAudioPlayer.pause();
+
+                                    dispose();
                                     setState(() {
                                       playBtn = Icons.play_arrow;
                                       playing = false;
