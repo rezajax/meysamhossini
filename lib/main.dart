@@ -2,6 +2,7 @@ import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:async';
 
 void main() {
   runApp(MyApp());
@@ -87,7 +88,7 @@ class _MusicAppState extends State<MusicApp> {
   late AssetsAudioPlayer _assetsAudioPlayer;
   var FILE_URI = "/assets/Khianat.mp3";
 
-  void openPlayer() {
+  void openPlayer() async {
     _assetsAudioPlayer.open(
       Audio(FILE_URI),
     );
