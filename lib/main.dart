@@ -86,11 +86,9 @@ class _MusicAppState extends State<MusicApp> {
   late AssetsAudioPlayer _assetsAudioPlayer;
   var FILE_URI = "/assets/Khianat.mp3";
 
-  void openPlayer() async {
-    await _assetsAudioPlayer.open(
+  void openPlayer() {
+    _assetsAudioPlayer.open(
       Audio(FILE_URI),
-      showNotification: true,
-      autoStart: true,
     );
   }
 
@@ -242,7 +240,11 @@ class _MusicAppState extends State<MusicApp> {
                                     // assetsAudioPlayer.open(
                                     //   Audio.file(FILE_URI),
                                     // );
-                                    openPlayer();
+                                    // openPlayer();
+
+                                    AssetsAudioPlayer.newPlayer().open(
+                                      Audio("assets/Khianat.mp3"),
+                                    );
 
                                     setState(() {
                                       playBtn = Icons.pause;
