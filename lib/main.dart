@@ -1,115 +1,253 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-//rebuild
+import 'package:google_fonts/google_fonts.dart';
+
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      debugShowCheckedModeBanner: false,
+      home: MusicApp(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
+class MusicApp extends StatefulWidget {
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  _MusicAppState createState() => _MusicAppState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _MusicAppState extends State<MusicApp> {
+  //we will need some variables
+  bool playing = false; // at the begining we are not playing any song
+  IconData playBtn = Icons.play_arrow; // the main state of the play button icon
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  //Now let's start by creating our music player
+  //first let's declare some object
+  AudioPlayer? _player;
+  AudioCache? cache;
+
+  Duration position = new Duration();
+  Duration musicLength = new Duration();
+
+  //we will create a custom slider
+
+  Widget slider() {
+    return Container(
+      width: 300.0,
+      child: Slider.adaptive(
+          activeColor: Colors.blue[800],
+          inactiveColor: Colors.grey[350],
+          value: position.inSeconds.toDouble(),
+          max: musicLength.inSeconds.toDouble(),
+          onChanged: (value) {
+            seekToSec(value.toInt());
+          }),
+    );
   }
 
+  //let's create the seek function that will allow us to go to a certain position of the music
+  void seekToSec(int sec) {
+    Duration newPos = Duration(seconds: sec);
+    // _player.seek(newPos);
+  }
+
+  //Now let's initialize our player
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _player = AudioPlayer();
+    //cache = AudioCache(fixedPlayer: _player);
+
+    //now let's handle the audioplayer time
+
+    //this function will allow you to get the music duration
+    // _player.durationHandler = (d) {
+    //   setState(() {
+    //     musicLength = d;
+    //   });
+    // };
+
+    //this function will allow us to move the cursor of the slider while we are playing the song
+    // _player.positionHandler = (p) {
+    //   setState(() {
+    //     position = p;
+    //   });
+    // };
+  }
+
+  final List<Color> colors = <Color>[Colors.red, Colors.blue, Colors.amber];
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        //let's start by creating the main UI of the app
+        body: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.blue.shade800,
+                  Colors.blue.shade200,
+                ]),
+          ),
+          child: Padding(
+            padding: EdgeInsets.only(
+              top: 48.0,
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+            child: Container(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  //Let's add some text title
+                  Padding(
+                    padding: const EdgeInsets.only(left: 12.0),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 0, 8, 0),
+                      child: Text(
+                        "صدای ماندگار",
+                        style: GoogleFonts.vazirmatn(
+                          color: Colors.white,
+                          fontSize: 38.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(left: 12.0),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 0, 8, 0),
+                      child: Text(
+                        "میثم حسینی",
+                        style: GoogleFonts.vazirmatn(
+                          color: Colors.white,
+                          fontSize: 24.0,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 24.0,
+                  ),
+                  //Let's add the music cover
+                  Center(
+                    child: Container(
+                      width: 280.0,
+                      height: 280.0,
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30.0),
+                          image: DecorationImage(
+                            image: AssetImage("assets/meysam.jpg"),
+                          )),
+                    ),
+                  ),
+
+                  SizedBox(
+                    height: 18.0,
+                  ),
+                  Center(
+                    child: Text(
+                      "خیانت",
+                      style: GoogleFonts.vazirmatn(
+                        color: Colors.white,
+                        fontSize: 32.0,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 30.0,
+                  ),
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(30.0),
+                          topRight: Radius.circular(30.0),
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          //Let's start by adding the controller
+                          //let's add the time indicator text
+
+                          Container(
+                            width: 500.0,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "${position.inMinutes}:${position.inSeconds.remainder(60)}",
+                                  style: TextStyle(
+                                    fontSize: 18.0,
+                                  ),
+                                ),
+                                slider(),
+                                Text(
+                                  "${musicLength.inMinutes}:${musicLength.inSeconds.remainder(60)}",
+                                  style: TextStyle(
+                                    fontSize: 18.0,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              IconButton(
+                                iconSize: 62.0,
+                                color: Colors.blue[800],
+                                onPressed: () {
+                                  //here we will add the functionality of the play button
+                                  if (!playing) {
+                                    //now let's play the song
+                                    //cache.play("Khianat.mp3");
+                                    setState(() {
+                                      playBtn = Icons.pause;
+                                      playing = true;
+                                    });
+                                  } else {
+                                    //_player.pause();
+                                    setState(() {
+                                      playBtn = Icons.play_arrow;
+                                      playing = false;
+                                    });
+                                  }
+                                },
+                                icon: Icon(
+                                  playBtn,
+                                ),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
