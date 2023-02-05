@@ -26,6 +26,15 @@ class MusicApp extends StatefulWidget {
 }
 
 class _MusicAppState extends State<MusicApp> {
+  final assetsAudioPlayer = AssetsAudioPlayer();
+  bool firstPlay = true;
+
+  void assetsPlay() {
+    assetsAudioPlayer.open(
+      Audio("assets/Khianat.mp3"),
+    );
+  }
+
   //we will need some variables
   bool playing = false; // at the begining we are not playing any song
   IconData playBtn = Icons.play_arrow; // the main state of the play button icon
@@ -47,7 +56,7 @@ class _MusicAppState extends State<MusicApp> {
           activeColor: Colors.blue[800],
           inactiveColor: Colors.grey[350],
           value: position.inSeconds.toDouble(),
-          max: musicLength.inSeconds.toDouble(),
+          max: 200,
           onChanged: (value) {
             seekToSec(value.toInt());
           }),
@@ -56,7 +65,13 @@ class _MusicAppState extends State<MusicApp> {
 
   //let's create the seek function that will allow us to go to a certain position of the music
   void seekToSec(int sec) {
+    // print(position);
     Duration newPos = Duration(seconds: sec);
+    // assetsAudioPlayer.seek(Duration(minutes: 1, seconds: 34));
+    position = newPos;
+    // print(position);
+    assetsAudioPlayer.seek(newPos);
+
     // _player.seek(newPos);
   }
 
@@ -77,12 +92,16 @@ class _MusicAppState extends State<MusicApp> {
     //   });
     // };
 
+    // musicLength = assetsAudioPlayer.current;
+
     //this function will allow us to move the cursor of the slider while we are playing the song
     // _player.positionHandler = (p) {
     //   setState(() {
     //     position = p;
     //   });
     // };
+
+    position = assetsAudioPlayer.currentPosition.value;
   }
 
   late AssetsAudioPlayer _assetsAudioPlayer;
@@ -104,6 +123,7 @@ class _MusicAppState extends State<MusicApp> {
   final List<Color> colors = <Color>[Colors.red, Colors.blue, Colors.amber];
   @override
   Widget build(BuildContext context) {
+    position = assetsAudioPlayer.currentPosition.value;
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -244,9 +264,22 @@ class _MusicAppState extends State<MusicApp> {
                                     // );
                                     // openPlayer();
 
-                                    AssetsAudioPlayer.newPlayer().open(
-                                      Audio("assets/Khianat.mp3"),
-                                    );
+                                    // AssetsAudioPlayer.newPlayer().open(
+                                    //   Audio("assets/Khianat.mp3"),
+                                    // );
+
+                                    if (firstPlay) {
+                                      assetsAudioPlayer.open(
+                                        Audio("assets/Khianat.mp3"),
+                                      );
+                                      firstPlay = false;
+                                    } else {
+                                      assetsAudioPlayer.play();
+                                    }
+                                    // print(assetsAudioPlayer.currentPosition);
+
+                                    // print(assetsAudioPlayer.seek(
+                                    //     Duration(minutes: 1, seconds: 34)));
 
                                     setState(() {
                                       playBtn = Icons.pause;
@@ -255,8 +288,9 @@ class _MusicAppState extends State<MusicApp> {
                                   } else {
                                     //_player.pause();
                                     // assetsAudioPlayer.pause();
-
-                                    dispose();
+                                    assetsAudioPlayer.pause();
+                                    // position = (Duration(minutes: 1, seconds: 34));
+                                    // dispose();
                                     setState(() {
                                       playBtn = Icons.play_arrow;
                                       playing = false;
