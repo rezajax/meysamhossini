@@ -211,7 +211,7 @@ class _MusicAppState extends State<MusicApp> with WidgetsBindingObserver {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Text(
-                                  "امروز ${difference.toString()} روزیه که از پیشمون رفتی",
+                                  "امروز ${difference.toString()} روزه که از پیشمون رفتی",
                                   style: GoogleFonts.vazirmatn(
                                     fontSize: 18.0,
                                     fontWeight: FontWeight.w400,
