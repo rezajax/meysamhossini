@@ -1,8 +1,10 @@
-import 'package:assets_audio_player/assets_audio_player.dart';
-import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:async';
+import 'package:audio_session/audio_session.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:meysamhossini/common.dart';
+import 'package:rxdart/rxdart.dart';
 
 void main() {
   runApp(MyApp());
@@ -25,105 +27,71 @@ class MusicApp extends StatefulWidget {
   _MusicAppState createState() => _MusicAppState();
 }
 
-class _MusicAppState extends State<MusicApp> {
-  final assetsAudioPlayer = AssetsAudioPlayer();
-  bool firstPlay = true;
+class _MusicAppState extends State<MusicApp> with WidgetsBindingObserver {
+  final _player = AudioPlayer();
 
-  void assetsPlay() {
-    assetsAudioPlayer.open(
-      Audio("assets/Khianat.mp3"),
-    );
-  }
-
-  //we will need some variables
-  bool playing = false; // at the begining we are not playing any song
-  IconData playBtn = Icons.play_arrow; // the main state of the play button icon
-
-  //Now let's start by creating our music player
-  //first let's declare some object
-  AudioPlayer? _player;
-  AudioCache? cache;
-
-  Duration position = new Duration();
-  Duration musicLength = new Duration();
-
-  //we will create a custom slider
-
-  Widget slider() {
-    return Container(
-      width: 300.0,
-      child: Slider.adaptive(
-          activeColor: Colors.blue[800],
-          inactiveColor: Colors.grey[350],
-          value: position.inSeconds.toDouble(),
-          max: 200,
-          onChanged: (value) {
-            seekToSec(value.toInt());
-          }),
-    );
-  }
-
-  //let's create the seek function that will allow us to go to a certain position of the music
-  void seekToSec(int sec) {
-    // print(position);
-    Duration newPos = Duration(seconds: sec);
-    // assetsAudioPlayer.seek(Duration(minutes: 1, seconds: 34));
-    position = newPos;
-    // print(position);
-    assetsAudioPlayer.seek(newPos);
-
-    // _player.seek(newPos);
-  }
-
-  //Now let's initialize our player
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    _player = AudioPlayer();
-    //cache = AudioCache(fixedPlayer: _player);
-
-    //now let's handle the audioplayer time
-
-    //this function will allow you to get the music duration
-    // _player.durationHandler = (d) {
-    //   setState(() {
-    //     musicLength = d;
-    //   });
-    // };
-
-    // musicLength = assetsAudioPlayer.current;
-
-    //this function will allow us to move the cursor of the slider while we are playing the song
-    // _player.positionHandler = (p) {
-    //   setState(() {
-    //     position = p;
-    //   });
-    // };
-
-    position = assetsAudioPlayer.currentPosition.value;
+    ambiguate(WidgetsBinding.instance)!.addObserver(this);
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.black,
+    ));
+    _init();
   }
 
-  late AssetsAudioPlayer _assetsAudioPlayer;
-  var FILE_URI = "/assets/Khianat.mp3";
-
-  void openPlayer() async {
-    _assetsAudioPlayer.open(
-      Audio(FILE_URI),
-    );
+  Future<void> _init() async {
+    // Inform the operating system of our app's audio attributes etc.
+    // We pick a reasonable default for an app that plays speech.
+    final session = await AudioSession.instance;
+    await session.configure(const AudioSessionConfiguration.speech());
+    // Listen to errors during playback.
+    _player.playbackEventStream.listen((event) {},
+        onError: (Object e, StackTrace stackTrace) {
+      print('A stream error occurred: $e');
+    });
+    // Try to load audio from a source and catch any errors.
+    try {
+      // AAC example: https://dl.espressif.com/dl/audio/ff-16b-2c-44100hz.aac
+      await _player.setAudioSource(AudioSource.uri(Uri.parse(
+          "https://raw.githubusercontent.com/rezajax/meysamhossini/master/assets/Khianat.mp3")));
+    } catch (e) {
+      print("Error loading audio source: $e");
+    }
   }
 
   @override
   void dispose() {
-    _assetsAudioPlayer.dispose();
-    print('dispose');
+    ambiguate(WidgetsBinding.instance)!.removeObserver(this);
+    // Release decoders and buffers back to the operating system making them
+    // available for other apps to use.
+    _player.dispose();
     super.dispose();
   }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      // Release the player's resources when not in use. We use "stop" so that
+      // if the app resumes later, it will still remember what position to
+      // resume from.
+      _player.stop();
+    }
+  }
+
+  /// Collects the data useful for displaying in a seek bar, using a handy
+  /// feature of rx_dart to combine the 3 streams of interest into one.
+  Stream<PositionData> get _positionDataStream =>
+      Rx.combineLatest3<Duration, Duration, Duration?, PositionData>(
+          _player.positionStream,
+          _player.bufferedPositionStream,
+          _player.durationStream,
+          (position, bufferedPosition, duration) => PositionData(
+              position, bufferedPosition, duration ?? Duration.zero));
 
   final List<Color> colors = <Color>[Colors.red, Colors.blue, Colors.amber];
   @override
   Widget build(BuildContext context) {
-    position = assetsAudioPlayer.currentPosition.value;
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -232,14 +200,14 @@ class _MusicAppState extends State<MusicApp> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Text(
-                                  "${position.inMinutes}:${position.inSeconds.remainder(60)}",
+                                  "0",
                                   style: TextStyle(
                                     fontSize: 18.0,
                                   ),
                                 ),
-                                slider(),
+                                //slider(),
                                 Text(
-                                  "${musicLength.inMinutes}:${musicLength.inSeconds.remainder(60)}",
+                                  "0",
                                   style: TextStyle(
                                     fontSize: 18.0,
                                   ),
@@ -247,62 +215,23 @@ class _MusicAppState extends State<MusicApp> {
                               ],
                             ),
                           ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              IconButton(
-                                iconSize: 62.0,
-                                color: Colors.blue[800],
-                                onPressed: () {
-                                  //here we will add the functionality of the play button
-                                  if (!playing) {
-                                    //now let's play the song
-                                    //cache.play("Khianat.mp3");
-                                    // assetsAudioPlayer.open(
-                                    //   Audio.file(FILE_URI),
-                                    // );
-                                    // openPlayer();
-
-                                    // AssetsAudioPlayer.newPlayer().open(
-                                    //   Audio("assets/Khianat.mp3"),
-                                    // );
-
-                                    if (firstPlay) {
-                                      assetsAudioPlayer.open(
-                                        Audio("assets/Khianat.mp3"),
-                                      );
-                                      firstPlay = false;
-                                    } else {
-                                      assetsAudioPlayer.play();
-                                    }
-                                    // print(assetsAudioPlayer.currentPosition);
-
-                                    // print(assetsAudioPlayer.seek(
-                                    //     Duration(minutes: 1, seconds: 34)));
-
-                                    setState(() {
-                                      playBtn = Icons.pause;
-                                      playing = true;
-                                    });
-                                  } else {
-                                    //_player.pause();
-                                    // assetsAudioPlayer.pause();
-                                    assetsAudioPlayer.pause();
-                                    // position = (Duration(minutes: 1, seconds: 34));
-                                    // dispose();
-                                    setState(() {
-                                      playBtn = Icons.play_arrow;
-                                      playing = false;
-                                    });
-                                  }
-                                },
-                                icon: Icon(
-                                  playBtn,
-                                ),
-                              ),
-                            ],
-                          )
+                          ControlButtons(_player),
+                          StreamBuilder<PositionData>(
+                            stream: _positionDataStream,
+                            builder: (context, snapshot) {
+                              final positionData = snapshot.data;
+                              return SeekBar(
+                                duration:
+                                    positionData?.duration ?? Duration.zero,
+                                position:
+                                    positionData?.position ?? Duration.zero,
+                                bufferedPosition:
+                                    positionData?.bufferedPosition ??
+                                        Duration.zero,
+                                onChangeEnd: _player.seek,
+                              );
+                            },
+                          ),
                         ],
                       ),
                     ),
@@ -313,6 +242,98 @@ class _MusicAppState extends State<MusicApp> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Displays the play/pause button and volume/speed sliders.
+class ControlButtons extends StatelessWidget {
+  final AudioPlayer player;
+
+  const ControlButtons(this.player, {Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Opens volume slider dialog
+        IconButton(
+          icon: const Icon(Icons.volume_up),
+          onPressed: () {
+            showSliderDialog(
+              context: context,
+              title: "Adjust volume",
+              divisions: 10,
+              min: 0.0,
+              max: 1.0,
+              value: player.volume,
+              stream: player.volumeStream,
+              onChanged: player.setVolume,
+            );
+          },
+        ),
+
+        /// This StreamBuilder rebuilds whenever the player state changes, which
+        /// includes the playing/paused state and also the
+        /// loading/buffering/ready state. Depending on the state we show the
+        /// appropriate button or loading indicator.
+        StreamBuilder<PlayerState>(
+          stream: player.playerStateStream,
+          builder: (context, snapshot) {
+            final playerState = snapshot.data;
+            final processingState = playerState?.processingState;
+            final playing = playerState?.playing;
+            if (processingState == ProcessingState.loading ||
+                processingState == ProcessingState.buffering) {
+              return Container(
+                margin: const EdgeInsets.all(8.0),
+                width: 64.0,
+                height: 64.0,
+                child: const CircularProgressIndicator(),
+              );
+            } else if (playing != true) {
+              return IconButton(
+                icon: const Icon(Icons.play_arrow),
+                iconSize: 64.0,
+                onPressed: player.play,
+              );
+            } else if (processingState != ProcessingState.completed) {
+              return IconButton(
+                icon: const Icon(Icons.pause),
+                iconSize: 64.0,
+                onPressed: player.pause,
+              );
+            } else {
+              return IconButton(
+                icon: const Icon(Icons.replay),
+                iconSize: 64.0,
+                onPressed: () => player.seek(Duration.zero),
+              );
+            }
+          },
+        ),
+        // Opens speed slider dialog
+        StreamBuilder<double>(
+          stream: player.speedStream,
+          builder: (context, snapshot) => IconButton(
+            icon: Text("${snapshot.data?.toStringAsFixed(1)}x",
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+            onPressed: () {
+              showSliderDialog(
+                context: context,
+                title: "Adjust speed",
+                divisions: 10,
+                min: 0.5,
+                max: 1.5,
+                value: player.speed,
+                stream: player.speedStream,
+                onChanged: player.setSpeed,
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
