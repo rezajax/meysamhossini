@@ -27,8 +27,19 @@ class MusicApp extends StatefulWidget {
   _MusicAppState createState() => _MusicAppState();
 }
 
+int daysBetween(DateTime from, DateTime to) {
+  from = DateTime(from.year, from.month, from.day);
+  to = DateTime(to.year, to.month, to.day);
+  return (to.difference(from).inHours / 24).round();
+}
+
+final daysgone = DateTime(2022, 12, 31);
+final now = DateTime.now();
+
 class _MusicAppState extends State<MusicApp> with WidgetsBindingObserver {
   final _player = AudioPlayer();
+
+  final difference = daysBetween(daysgone, now);
 
   @override
   void initState() {
@@ -200,18 +211,19 @@ class _MusicAppState extends State<MusicApp> with WidgetsBindingObserver {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Text(
-                                  "0",
-                                  style: TextStyle(
+                                  "امروز ${difference.toString()} روزیه که از پیشمون رفتی",
+                                  style: GoogleFonts.vazirmatn(
                                     fontSize: 18.0,
+                                    fontWeight: FontWeight.w400,
                                   ),
                                 ),
                                 //slider(),
-                                Text(
-                                  "0",
-                                  style: TextStyle(
-                                    fontSize: 18.0,
-                                  ),
-                                ),
+                                // Text(
+                                //   "0",
+                                //   style: TextStyle(
+                                //     fontSize: 18.0,
+                                //   ),
+                                // ),
                               ],
                             ),
                           ),
@@ -314,7 +326,7 @@ class ControlButtons extends StatelessWidget {
           },
         ),
         // Opens speed slider dialog
-        StreamBuilder<double>(
+        /* StreamBuilder<double>(
           stream: player.speedStream,
           builder: (context, snapshot) => IconButton(
             icon: Text("${snapshot.data?.toStringAsFixed(1)}x",
@@ -332,7 +344,7 @@ class ControlButtons extends StatelessWidget {
               );
             },
           ),
-        ),
+        ), */
       ],
     );
   }
