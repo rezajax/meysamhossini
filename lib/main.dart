@@ -136,7 +136,7 @@ class _MusicAppState extends State<MusicApp> with WidgetsBindingObserver {
                         "صدای ماندگار",
                         style: GoogleFonts.vazirmatn(
                           color: Colors.white,
-                          fontSize: 38.0,
+                          fontSize: 30.0,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -150,7 +150,7 @@ class _MusicAppState extends State<MusicApp> with WidgetsBindingObserver {
                         "میثم حسینی",
                         style: GoogleFonts.vazirmatn(
                           color: Colors.white,
-                          fontSize: 24.0,
+                          fontSize: 20.0,
                           fontWeight: FontWeight.w400,
                         ),
                       ),
@@ -162,8 +162,8 @@ class _MusicAppState extends State<MusicApp> with WidgetsBindingObserver {
                   //Let's add the music cover
                   Center(
                     child: Container(
-                      width: 280.0,
-                      height: 280.0,
+                      width: 180.0,
+                      height: 180.0,
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(30.0),
                           image: DecorationImage(
@@ -198,12 +198,12 @@ class _MusicAppState extends State<MusicApp> with WidgetsBindingObserver {
                         ),
                       ),
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           //Let's start by adding the controller
                           //let's add the time indicator text
-
+                          SizedBox(height: 16),
                           Container(
                             width: 500.0,
                             child: Row(
